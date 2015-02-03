@@ -10,9 +10,9 @@ module GithubActivity
         write_header
       end
 
-      def render repo_name, commit
+      def render repo: repo, commit: commit
         line = [
-          repo_name,
+          repo.full_name,
           commit.timestamp,
           commit.author.name,
           commit.author.email,
