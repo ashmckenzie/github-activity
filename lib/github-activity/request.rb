@@ -1,7 +1,7 @@
 module GithubActivity
   class Request
 
-    def get query, sleep_duration=2
+    def get query, sleep_duration: nil
       data = []
       query.call
       last_response = $github_api_client.last_response
@@ -15,8 +15,10 @@ module GithubActivity
 
         break if last_response.data.empty? || !last_response.rels[:next]
         last_response = last_response.rels[:next].get
-        sleep(sleep_duration)
+
         break if last_response.rels[:next].nil?
+
+        sleep(sleep_duration) if sleep_duration
       end
 
       data.flatten
