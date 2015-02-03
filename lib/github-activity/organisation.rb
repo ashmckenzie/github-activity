@@ -7,14 +7,14 @@ module GithubActivity
       @name = name
     end
 
-    def repos filter
+    def repos filter: nil
       repos = []
       query = proc { $github_api_client.organization_repositories(name, per_page: PER_PAGE) }
-      r = Regexp.new(filter)
+      r = filter ? Regexp.new(filter) : nil
 
-      request.get(query) do |raw_repos|
+      request.get(query, sleep_duration: 1) do |raw_repos|
         raw_repos.each do |raw_repo|
-          repos << Repo.new(raw_repo) if raw_repo[:name].match(r)
+          repos << Repo.new(raw_repo) if !r || (r && raw_repo[:name].match(r))
         end
       end
 
