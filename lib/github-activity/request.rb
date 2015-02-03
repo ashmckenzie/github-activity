@@ -16,8 +16,6 @@ module GithubActivity
         break if last_response.data.empty? || !last_response.rels[:next]
         last_response = last_response.rels[:next].get
 
-        break if last_response.rels[:next].nil?
-
         sleep(sleep_duration) if sleep_duration
       end
 
