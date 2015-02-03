@@ -2,15 +2,7 @@
 
 ## Overview
 
-GitHub activity is a small Ruby application that allows one to list all commits for a given set of repos for a given
-
-```bash
-$ GITHUB_API_TOKEN='<token>' ./activity.rb --org <org> --date-from 2015-01-31 --date-to 2015-01-31
-=========================================
-Commits between 2015-01-01 and 2015-01-31
-=========================================
-...
-```
+GitHub activity is a small Ruby application that allows one to list all commits for a given set of repos for a given date range.
 
 ## Setup
 
@@ -23,11 +15,7 @@ Commits between 2015-01-01 and 2015-01-31
 ## Running
 
 ```bash
-$ GITHUB_API_TOKEN='<token>' ./activity.rb --org <org> --date-from 2015-01-31 --date-to 2015-01-31
-=========================================
-Commits between 2015-01-01 and 2015-01-31
-=========================================
-...
+$ GITHUB_API_TOKEN='<token>' ./activity.rb --org <org> --date-from <YYYY-MM-DD> --date-to <YYYY-MM-DD>
 ```
 
 ## Output
