@@ -29,14 +29,13 @@ puts "========================================="
 puts "Commits between #{DATE_FROM} and #{DATE_TO}"
 puts "=========================================\n\n"
 
-$github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN)
-$github_api_client.user.login
+$github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |client| client.user.login }
 
 org = GithubActivity::Organisation.new(ORGANISATION)
 csv = GithubActivity::Formatters::CSV.new(CSV_OUTPUT_FILE)
 human = GithubActivity::Formatters::Human.new
 
-org.repos(FILTER).each do |repo|
+org.repos(filter: FILTER).each do |repo|
   commits = repo.commits(DATE_FROM, DATE_TO)
 
   puts "===> #{repo.full_name} "
