@@ -12,7 +12,7 @@ module GithubActivity
       query = proc { $github_api_client.organization_repositories(name, per_page: PER_PAGE) }
       r = filter ? Regexp.new(filter) : nil
 
-      request.get(query, sleep_duration: 1) do |raw_repos|
+      request.get(query) do |raw_repos|
         raw_repos.each do |raw_repo|
           repos << Repo.new(raw_repo) if !r || (r && raw_repo[:name].match(r))
         end
