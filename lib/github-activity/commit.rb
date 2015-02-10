@@ -7,7 +7,7 @@ module GithubActivity
 
     def initialize(repo, raw)
       @repo = repo
-      @raw = raw
+      @raw  = raw
     end
 
     def sha
@@ -34,6 +34,19 @@ module GithubActivity
       @jira_urls ||= begin
         message.scan(/(\w+-\d+)/).flatten.map { |x| x.strip.upcase }.uniq.map do |ticket_number|
           "#{ZENDESK_JIRA_BASE_URL}/#{ticket_number}"
+        end
+      end
+    end
+
+    def parent_commits
+      @parent_commits ||= begin
+        raw.parents.map do |parent_commit|
+          $moneta.fetch(parent_commit.sha) do |sha|
+            $github_api_client.commit(repo.full_name, sha)
+            GithubActivity::Commit.new(repo, raw_commit).tap do |commit|
+              $moneta[sha] = commit
+            end
+          end
         end
       end
     end
