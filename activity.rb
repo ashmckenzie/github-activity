@@ -14,6 +14,7 @@ GITHUB_API_TOKEN = ENV['GITHUB_API_TOKEN'] || fail('GITHUB_API_TOKEN env var is 
 
 opts = Trollop.options do
   opt :verbose, 'Verbose mode', default: false
+  opt :debug, 'Debug mode', default: false
   opt :org, 'Organisation', type: :string, required: true
   opt :date_from, 'Date FROM (YYYY-MM-DD)', type: :string, required: true
   opt :date_to, 'Date TO (YYYY-MM-DD)', type: :string, required: true
@@ -28,9 +29,13 @@ ORGANISATION    = opts[:org]
 FILTER          = opts[:filter]
 
 VERBOSE         = opts[:verbose]
+DEBUG        = opts[:debug]
+
+require 'pry-byebug' if DEBUG
 
 CSV_OUTPUT_FILE = "output_#{ORGANISATION}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
+$logger = Logger.new(STDOUT).tap { |logger| logger.level = Logger::DEBUG }
 $moneta = Moneta.new(:Memory)
 $github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |client| client.user.login }
 
@@ -57,4 +62,5 @@ end
 puts if VERBOSE
 
 formatters.each(&:finish!)
+
 $moneta.close
