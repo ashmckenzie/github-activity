@@ -1,7 +1,7 @@
 module GithubActivity
   class Commit
 
-    ZENDESK_JIRA_BASE_URL = "https://zendesk.atlassian.net/browse"
+    ZENDESK_JIRA_BASE_URL = 'https://zendesk.atlassian.net/browse'
 
     def initialize raw
       @raw = raw

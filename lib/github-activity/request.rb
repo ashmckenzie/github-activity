@@ -1,7 +1,7 @@
 module GithubActivity
   class Request
 
-    def get query, sleep_duration: nil
+    def get(query, sleep_duration: nil)
       data = []
       query.call
       last_response = $github_api_client.last_response

@@ -3,11 +3,11 @@ module GithubActivity
 
     PER_PAGE = 100
 
-    def initialize name
+    def initialize(name)
       @name = name
     end
 
-    def repos filter: nil
+    def repos(filter: nil)
       repos = []
       query = proc { $github_api_client.organization_repositories(name, per_page: PER_PAGE) }
       r = filter ? Regexp.new(filter) : nil

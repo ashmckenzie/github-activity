@@ -3,7 +3,7 @@ module GithubActivity
 
     PER_PAGE = 100
 
-    def initialize raw
+    def initialize(raw)
       @raw = raw
     end
 
@@ -15,7 +15,7 @@ module GithubActivity
       @name ||= raw.name
     end
 
-    def commits date_from, date_to
+    def commits(date_from, date_to)
       query = proc { $github_api_client.commits_between(full_name, date_from, date_to, per_page: PER_PAGE) }
       request.get(query).map { |raw_commit| GithubActivity::Commit.new(raw_commit) }
     end

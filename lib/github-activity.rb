@@ -5,5 +5,4 @@ require_relative './github-activity/commit'
 require_relative './github-activity/formatters/csv'
 
 module GithubActivity
-
 end
