@@ -3,8 +3,15 @@ module GithubActivity
 
     ZENDESK_JIRA_BASE_URL = 'https://zendesk.atlassian.net/browse'
 
-    def initialize raw
+    attr_reader :repo
+
+    def initialize(repo, raw)
+      @repo = repo
       @raw = raw
+    end
+
+    def sha
+      @sha ||= raw.sha
     end
 
     def timestamp

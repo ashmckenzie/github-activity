@@ -4,6 +4,9 @@ require 'bundler/setup'
 require 'octokit'
 require 'date'
 require 'trollop'
+require 'logger'
+require 'dalli'
+require 'moneta'
 
 require_relative './lib/github-activity'
 
@@ -28,6 +31,7 @@ VERBOSE         = opts[:verbose]
 
 CSV_OUTPUT_FILE = "output_#{ORGANISATION}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
+$moneta = Moneta.new(:Memory)
 $github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |client| client.user.login }
 
 if VERBOSE
@@ -53,3 +57,4 @@ end
 puts if VERBOSE
 
 formatters.each(&:finish!)
+$moneta.close

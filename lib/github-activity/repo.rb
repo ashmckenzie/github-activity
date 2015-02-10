@@ -17,7 +17,13 @@ module GithubActivity
 
     def commits(date_from, date_to)
       query = proc { $github_api_client.commits_between(full_name, date_from, date_to, per_page: PER_PAGE) }
-      request.get(query).map { |raw_commit| GithubActivity::Commit.new(raw_commit) }
+      request.get(query).map do |raw_commit|
+        $moneta.fetch(raw_commit.sha) do |sha|
+          GithubActivity::Commit.new(self, raw_commit).tap do |commit|
+            $moneta[sha] = commit
+          end
+        end
+      end
     end
 
     private
