@@ -61,6 +61,10 @@ module GithubActivity
       end
     end
 
+    def commit_pull_request_number
+      @commit_pull_request_number ||= message.match(pull_request_regex) { |match| match[:number] }
+    end
+
     private
 
       attr_reader :raw
@@ -71,10 +75,6 @@ module GithubActivity
 
       def pull_request_number
         commit_pull_request_number || parent_commit_pull_request_number
-      end
-
-      def commit_pull_request_number
-        @commit_pull_request_number ||= message.match(pull_request_regex) { |match| match[:number] }
       end
 
       def parent_commit_pull_request_number
