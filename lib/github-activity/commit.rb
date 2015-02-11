@@ -73,16 +73,6 @@ module GithubActivity
       end
     end
 
-    def inspect
-      {
-        name: author.name,
-        email: author.email,
-        message: message,
-        github_url: github_url,
-        jira_urls: jira_urls
-      }
-    end
-
     private
 
       attr_reader :raw
