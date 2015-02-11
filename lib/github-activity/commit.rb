@@ -43,14 +43,6 @@ module GithubActivity
       end
     end
 
-    def jira_ticket_numbers_from_commit
-      @jira_ticket_numbers_from_commit ||= JiraTicket.extract_jira_ticket_numbers_from(message)
-    end
-
-    def jira_ticket_numbers_from_pull_request
-      @jira_ticket_numbers_from_pull_request ||= pull_request.jira_ticket_numbers
-    end
-
     def jira_tickets
       @jira_tickets ||= begin
         (jira_ticket_numbers_from_commit + jira_ticket_numbers_from_pull_request).uniq.map do |ticket_number|
@@ -90,6 +82,14 @@ module GithubActivity
           commit = parent_commits.detect { |c| !c.commit_pull_request_number.nil? }
           commit ? commit.commit_pull_request_number : nil
         end
+      end
+
+      def jira_ticket_numbers_from_commit
+        @jira_ticket_numbers_from_commit ||= JiraTicket.extract_jira_ticket_numbers_from(message)
+      end
+
+      def jira_ticket_numbers_from_pull_request
+        @jira_ticket_numbers_from_pull_request ||= pull_request.jira_ticket_numbers
       end
 
   end
