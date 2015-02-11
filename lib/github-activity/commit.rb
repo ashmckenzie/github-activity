@@ -28,20 +28,6 @@ module GithubActivity
       @url ||= raw.html_url
     end
 
-    def commit_pull_request_number
-      @commit_pull_request_number ||= message.match(pull_request_regex) { |match| match[:number] }
-    end
-
-    def parent_commit_pull_request_number
-      @parent_commit_pull_request_number ||= begin
-        commit = parent_commits.detect do |commit|
-          !commit.commit_pull_request_number.nil?
-        end
-
-        commit ? commit.commit_pull_request_number : nil
-      end
-    end
-
     def pull_request_number
       commit_pull_request_number || parent_commit_pull_request_number
     end
@@ -103,6 +89,17 @@ module GithubActivity
 
       def pull_request_regex
         @pull_request_regex ||= /^Merge pull request #(?<number>\d+) /
+      end
+
+      def commit_pull_request_number
+        @commit_pull_request_number ||= message.match(pull_request_regex) { |match| match[:number] }
+      end
+
+      def parent_commit_pull_request_number
+        @parent_commit_pull_request_number ||= begin
+          commit = parent_commits.detect { |c| !c.commit_pull_request_number.nil? }
+          commit ? commit.commit_pull_request_number : nil
+        end
       end
 
   end
