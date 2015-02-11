@@ -28,10 +28,6 @@ module GithubActivity
       @url ||= raw.html_url
     end
 
-    def pull_request_number
-      commit_pull_request_number || parent_commit_pull_request_number
-    end
-
     def pull_request
       @pull_request ||= begin
         if pull_request_number
@@ -71,6 +67,10 @@ module GithubActivity
 
       def pull_request_regex
         @pull_request_regex ||= /^Merge pull request #(?<number>\d+) /
+      end
+
+      def pull_request_number
+        commit_pull_request_number || parent_commit_pull_request_number
       end
 
       def commit_pull_request_number
