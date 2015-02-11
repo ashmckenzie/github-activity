@@ -56,5 +56,9 @@ module GithubActivity
 
   NullPullRequest = Naught.build do |config|
     config.mimic PullRequest
+
+    def jira_ticket_numbers
+      []
+    end
   end
 end
