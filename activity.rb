@@ -5,6 +5,8 @@ require 'octokit'
 require 'date'
 require 'trollop'
 require 'logger'
+require 'naught'
+
 require 'dalli'
 require 'moneta'
 
