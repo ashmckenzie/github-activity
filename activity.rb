@@ -38,8 +38,10 @@ require 'pry-byebug' if DEBUG
 CSV_OUTPUT_FILE = "output_#{ORGANISATION}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
 $logger = Logger.new(STDOUT).tap { |logger| logger.level = Logger::DEBUG }
-$moneta = Moneta.new(:Memory)
 $github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |client| client.user.login }
+
+$moneta = Moneta.new(:Memory)
+# $moneta = Moneta.new(:MemcachedDalli)
 
 if VERBOSE
   puts '========================================='
