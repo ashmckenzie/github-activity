@@ -2,7 +2,7 @@ module GithubActivity
   module Formatters
     class CSV
 
-      HEADERS = %w( repo_name timestamp name email message github_url jira_urls )
+      HEADERS = %w( repo_name timestamp name email message github_url github_pr_url jira_urls )
 
       def initialize(filename)
         @file = File.open(filename, 'w')
@@ -18,7 +18,8 @@ module GithubActivity
           commit.author.email,
           commit.message,
           commit.github_url,
-          commit.jira_urls.join(' ')
+          commit.pull_request.url,
+          commit.jira_tickets.map(&:url).join(' ')
         ]
         file.puts(line.join(','))
       end
