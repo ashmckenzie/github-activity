@@ -17,6 +17,8 @@ GITHUB_API_TOKEN = ENV['GITHUB_API_TOKEN'] || fail('GITHUB_API_TOKEN env var is 
 opts = Trollop.options do
   opt :verbose, 'Verbose mode', default: false
   opt :debug, 'Debug mode', default: false
+  opt :extreme_debug, 'EXTREME debug mode', default: false
+
   opt :org, 'Organisation', type: :string, required: true
   opt :date_from, 'Date FROM (YYYY-MM-DD)', type: :string, required: true
   opt :date_to, 'Date TO (YYYY-MM-DD)', type: :string, required: true
@@ -25,15 +27,28 @@ end
 
 Trollop.die('Date FROM must be *BEFORE* Date TO') if DateTime.parse(opts[:date_from]) > DateTime.parse(opts[:date_to])
 
-DATE_FROM       = opts[:date_from]
-DATE_TO         = opts[:date_to]
-ORGANISATION    = opts[:org]
-FILTER          = opts[:filter]
+DATE_FROM     = opts[:date_from]
+DATE_TO       = opts[:date_to]
+ORGANISATION  = opts[:org]
+FILTER        = opts[:filter]
 
-VERBOSE         = opts[:verbose]
-DEBUG        = opts[:debug]
+VERBOSE       = opts[:verbose]
+DEBUG         = opts[:debug]
+EXTREME_DEBUG = opts[:extreme_debug]
 
-require 'pry-byebug' if DEBUG
+if DEBUG || EXTREME_DEBUG
+  require 'pry-byebug'
+
+  if EXTREME_DEBUG
+    stack = Faraday::RackBuilder.new do |builder|
+      builder.response :logger
+      builder.use Octokit::Response::RaiseError
+      builder.adapter Faraday.default_adapter
+    end
+
+    Octokit.middleware = stack
+  end
+end
 
 CSV_OUTPUT_FILE = "output_#{ORGANISATION}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
