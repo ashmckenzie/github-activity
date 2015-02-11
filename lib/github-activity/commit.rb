@@ -62,10 +62,7 @@ module GithubActivity
     end
 
     def jira_ticket_numbers_from_pull_request
-      if sha == 'd7e8d35ab52da8ec5a231509cc8fa121182d7128'
-        pull_request.jira_ticket_numbers
-      end
-      []
+      @jira_ticket_numbers_from_pull_request ||= pull_request.jira_ticket_numbers
     end
 
     def jira_tickets
