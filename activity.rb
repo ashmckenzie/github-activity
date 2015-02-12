@@ -22,15 +22,25 @@ opts = Trollop.options do
   opt :org, 'Organisation', type: :string, required: true
   opt :date_from, 'Date FROM (YYYY-MM-DD)', type: :string, required: true
   opt :date_to, 'Date TO (YYYY-MM-DD)', type: :string, required: true
+
   opt :filter, 'Filter repositories regex', type: :string
+  opt :repos, 'Comma separated list of repos to search', type: :string
 end
 
 Trollop.die('Date FROM must be *BEFORE* Date TO') if DateTime.parse(opts[:date_from]) > DateTime.parse(opts[:date_to])
+Trollop.die('--filter and --repos are mutually exclusive') if opts[:filter] && opts[:repos]
 
-DATE_FROM     = opts[:date_from]
-DATE_TO       = opts[:date_to]
-ORGANISATION  = opts[:org]
-FILTER        = opts[:filter]
+DATE_FROM         = opts[:date_from]
+DATE_TO           = opts[:date_to]
+ORGANISATION_NAME = opts[:org]
+
+if opts[:filter]
+  REPO_LOOKUP_KLASS  = GithubActivity::RepoLookup::Regex
+  REPO_LOOKUP_FILTER = opts[:filter]
+else
+  REPO_LOOKUP_KLASS  = GithubActivity::RepoLookup::Exact
+  REPO_LOOKUP_FILTER = opts.fetch(:repos, []).split(',').map(&:strip)
+end
 
 VERBOSE       = opts[:verbose]
 DEBUG         = opts[:debug]
@@ -50,7 +60,7 @@ if DEBUG || EXTREME_DEBUG
   end
 end
 
-CSV_OUTPUT_FILE = "output_#{ORGANISATION}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
+CSV_OUTPUT_FILE = "output_#{ORGANISATION_NAME}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
 $logger = Logger.new(STDOUT).tap { |logger| logger.level = Logger::DEBUG }
 $github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |client| client.user.login }
@@ -58,16 +68,10 @@ $github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |
 $moneta = Moneta.new(:Memory)
 # $moneta = Moneta.new(:MemcachedDalli)
 
-if VERBOSE
-  puts '========================================='
-  puts "Commits between #{DATE_FROM} and #{DATE_TO}"
-  puts "=========================================\n\n"
-end
-
-org = GithubActivity::Organisation.new(ORGANISATION)
+org = GithubActivity::Organisation.new(ORGANISATION_NAME)
 formatters = [ GithubActivity::Formatters::CSV.new(CSV_OUTPUT_FILE) ]
 
-org.repos(filter: FILTER).each do |repo|
+org.repos(REPO_LOOKUP_KLASS, REPO_LOOKUP_FILTER).each do |repo|
   repo.commits(DATE_FROM, DATE_TO).each do |commit|
     formatters.each do |formatter|
       formatter.render(repo: repo, commit: commit)
