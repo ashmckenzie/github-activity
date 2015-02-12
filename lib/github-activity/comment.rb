@@ -5,6 +5,10 @@ module GithubActivity
       @raw = raw
     end
 
+    def id
+      @id ||= raw.id
+    end
+
     def body
       @body ||= raw.body
     end
