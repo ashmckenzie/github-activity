@@ -9,6 +9,7 @@ gem 'naught'
 gem 'moneta'
 gem 'dalli'
 gem 'redis'
+gem 'redis-namespace'
 
 gem 'pry-byebug'
 gem 'stackprof'

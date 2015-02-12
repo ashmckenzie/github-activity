@@ -28,6 +28,8 @@ GEM
       byebug (~> 3.4)
       pry (~> 0.10)
     redis (3.2.1)
+    redis-namespace (1.5.1)
+      redis (~> 3.0, >= 3.0.4)
     sawyer (0.6.0)
       addressable (~> 2.3.5)
       faraday (~> 0.8, < 0.10)
@@ -47,5 +49,6 @@ DEPENDENCIES
   octokit
   pry-byebug
   redis
+  redis-namespace
   stackprof
   trollop
