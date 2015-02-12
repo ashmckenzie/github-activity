@@ -6,11 +6,13 @@ module GithubActivity
 
       def initialize(filename)
         @file = File.open(filename, 'w')
+      end
 
+      def begin!
         write_header
       end
 
-      def render(repo: repo, commit: commit)
+      def render(repo, commit)
         line = [
           repo.full_name,
           commit.timestamp,

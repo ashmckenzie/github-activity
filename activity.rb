@@ -80,10 +80,12 @@ $moneta = Moneta.new(:Memory)
 org = GithubActivity::Organisation.new(ORGANISATION_NAME)
 formatters = [ GithubActivity::Formatters::CSV.new(CSV_OUTPUT_FILE) ]
 
+formatters.each(&:begin!)
+
 org.repos(REPO_LOOKUP_KLASS, REPO_LOOKUP_FILTER).each do |repo|
   repo.commits(DATE_FROM, DATE_TO).each do |commit|
     formatters.each do |formatter|
-      formatter.render(repo: repo, commit: commit)
+        formatter.render(repo, commit)
       print('.') if VERBOSE
     end
   end
