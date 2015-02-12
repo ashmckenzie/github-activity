@@ -66,7 +66,7 @@ module GithubActivity
 
     def jira_tickets
       @jira_tickets ||= begin
-        (jira_ticket_numbers + jira_ticket_numbers_from_pull_request).uniq.map do |ticket_number|
+        (jira_ticket_numbers || jira_ticket_numbers_from_pull_request).uniq.map do |ticket_number|
           JiraTicket.new(ticket_number)
         end
       end
