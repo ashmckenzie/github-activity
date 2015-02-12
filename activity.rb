@@ -75,11 +75,10 @@ org.repos(REPO_LOOKUP_KLASS, REPO_LOOKUP_FILTER).each do |repo|
   repo.commits(DATE_FROM, DATE_TO).each do |commit|
     formatters.each do |formatter|
       formatter.render(repo: repo, commit: commit)
-      print('+') if VERBOSE
+      print('.') if VERBOSE
     end
   end
-
-  print('.') if VERBOSE
+  print('+') if VERBOSE
 end
 
 puts if VERBOSE
