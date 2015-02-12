@@ -24,7 +24,6 @@ module GithubActivity
 
     def self.find_comments(repo, pull_request_number)
       # TODO: Why #pull_request_comments doesn't work?
-      # $github_api_client.pull_request_comments(repo.full_name, pull_request_number).map do |raw_comment|
       $github_api_client.issue_comments(repo.full_name, pull_request_number).map do |raw_comment|
         key = comments_lookup_key(repo, raw_comment.id)
         $moneta.fetch(key) { Comment.new(raw_comment).tap { |c| $moneta[key] = c } }
