@@ -10,7 +10,7 @@ require 'naught'
 
 require 'moneta'
 require 'dalli'
-require 'redis'
+require 'redis-namespace'
 
 require_relative './lib/github-activity'
 
@@ -77,7 +77,7 @@ $github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |
 
 # $moneta = Moneta.new(:Memory)
 # $moneta = Moneta.new(:MemcachedDalli)
-$moneta = Moneta.new(:Redis)
+$moneta = Moneta.new(:Redis, backend: Redis::Namespace.new('github-activity'))
 
 org = GithubActivity::Organisation.new(ORGANISATION_NAME)
 formatters = [ GithubActivity::Formatters::CSV.new(CSV_OUTPUT_FILE) ]
