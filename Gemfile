@@ -8,6 +8,7 @@ gem 'naught'
 
 gem 'moneta'
 gem 'dalli'
+gem 'redis'
 
 gem 'pry-byebug'
 gem 'stackprof'
