@@ -11,8 +11,7 @@ module GithubActivity
     end
 
     def self.find(repo, sha)
-      key = lookup_key(repo, sha)
-      $moneta.fetch(key) do
+      $moneta.fetch(lookup_key(repo, sha)) do |key|
         raw_commit = $github_api_client.commit(repo.full_name, sha)
         new(repo, raw_commit).tap { |c| $moneta[key] = c }
       end
@@ -23,8 +22,7 @@ module GithubActivity
       query = proc { $github_api_client.commits_between(repo.full_name, date_from, date_to, per_page: PER_PAGE) }
 
       request.get(query).map do |raw_commit|
-        key = lookup_key(repo, raw_commit.sha)
-        $moneta.fetch(key) do
+        $moneta.fetch(lookup_key(repo, raw_commit.sha)) do |key|
           new(repo, raw_commit).tap { |c| $moneta[key] = c }
         end
       end
@@ -57,7 +55,9 @@ module GithubActivity
     def pull_request
       @pull_request ||= begin
         if pull_request_number
-          PullRequest.find(repo, pull_request_number)
+          PullRequest.find(repo, pull_request_number).tap do |pull_request|
+            create_pull_request_commit_links!(pull_request)
+          end
         else
           NullPullRequest.new
         end
@@ -88,20 +88,29 @@ module GithubActivity
 
       attr_reader :raw
 
+      def create_pull_request_commit_links!(pull_request)
+        pull_request.commits.each do |commit|
+          $moneta.fetch(pull_request_commit_link_key(commit)) do |key|
+            $moneta[key] = pull_request.number
+          end
+        end
+      end
+
+      # FIXME: lame
+      def pull_request_commit_link_key(commit)
+        '%s:pull-request-commit-links:%s' % [ repo.cache_key, commit.sha ]
+      end
+
       def pull_request_regex
         @pull_request_regex ||= /^Merge pull request #(?<number>\d+) /
       end
 
       def pull_request_number
-        commit_pull_request_number || parent_commit_pull_request_number
+        commit_pull_request_number || linked_pull_request_number
       end
 
-      # FIXME: this is lame
-      def parent_commit_pull_request_number
-        @parent_commit_pull_request_number ||= begin
-          parent_commit = parent_commits.detect { |c| !c.commit_pull_request_number.nil? }
-          parent_commit ? parent_commit.pull_request.number : nil
-        end
+      def linked_pull_request_number
+        $moneta[pull_request_commit_link_key(self)]
       end
 
       def jira_ticket_numbers

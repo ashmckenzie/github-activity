@@ -15,7 +15,7 @@ module GithubActivity
         repos = []
         request.get(lookup_query) do |raw_repos|
           raw_repos.each do |raw_repo|
-            repos << Repo.new(raw_repo) if !r || (r && raw_repo[:name].match(r))
+            repos << Repo.new(raw_repo) if raw_repo[:name].match(regex)
           end
         end
         repos
