@@ -2,6 +2,7 @@
 
 require 'bundler/setup'
 require 'octokit'
+require 'faraday-http-cache'
 require 'date'
 require 'trollop'
 require 'logger'
@@ -46,19 +47,27 @@ VERBOSE       = opts[:verbose]
 DEBUG         = opts[:debug]
 EXTREME_DEBUG = opts[:extreme_debug]
 
+octokit_stack = Faraday::RackBuilder.new do |builder|
+  builder.use Faraday::HttpCache
+  builder.use Octokit::Response::RaiseError
+  builder.adapter Faraday.default_adapter
+end
+
 if DEBUG || EXTREME_DEBUG
   require 'pry-byebug'
+  require 'stackprof'
 
   if EXTREME_DEBUG
-    stack = Faraday::RackBuilder.new do |builder|
+    octokit_stack = Faraday::RackBuilder.new do |builder|
       builder.response :logger
+      builder.use Faraday::HttpCache
       builder.use Octokit::Response::RaiseError
       builder.adapter Faraday.default_adapter
     end
-
-    Octokit.middleware = stack
   end
 end
+
+Octokit.middleware = octokit_stack
 
 CSV_OUTPUT_FILE = "output_#{ORGANISATION_NAME}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
