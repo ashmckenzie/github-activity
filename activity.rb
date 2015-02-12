@@ -8,8 +8,9 @@ require 'trollop'
 require 'logger'
 require 'naught'
 
-require 'dalli'
 require 'moneta'
+require 'dalli'
+require 'redis'
 
 require_relative './lib/github-activity'
 
@@ -69,13 +70,14 @@ end
 
 Octokit.middleware = octokit_stack
 
-CSV_OUTPUT_FILE = "output_#{ORGANISATION_NAME}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
+CSV_OUTPUT_FILE = "./output/#{ORGANISATION_NAME}_#{DATE_FROM.downcase}-#{DATE_TO.downcase}.csv"
 
 $logger = Logger.new(STDOUT).tap { |logger| logger.level = Logger::DEBUG }
-$github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |client| client.user.login }
+$github_api_client = Octokit::Client.new(access_token: GITHUB_API_TOKEN).tap { |c| c.user.login }
 
-$moneta = Moneta.new(:Memory)
+# $moneta = Moneta.new(:Memory)
 # $moneta = Moneta.new(:MemcachedDalli)
+$moneta = Moneta.new(:Redis)
 
 org = GithubActivity::Organisation.new(ORGANISATION_NAME)
 formatters = [ GithubActivity::Formatters::CSV.new(CSV_OUTPUT_FILE) ]
