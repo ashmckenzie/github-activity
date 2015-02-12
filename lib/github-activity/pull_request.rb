@@ -6,6 +6,31 @@ module GithubActivity
       @raw  = raw
     end
 
+    def self.find(repo, pull_request_number)
+      key = pull_request_lookup_key(repo, pull_request_number)
+      $moneta.fetch(key) do
+        raw_pull_request = $github_api_client.pull_request(repo.full_name, pull_request_number)
+        new(repo, raw_pull_request).tap { |pr| $moneta[key] = pr }
+      end
+    end
+
+    def self.pull_request_lookup_key(repo, sha)
+      '%s:pull-request:%s' % [ repo.cache_key, sha ]
+    end
+
+    def self.find_comments(repo, pull_request_number)
+      $github_api_client.issue_comments(repo.full_name, pull_request_number).map do |raw_comment|
+        key = issue_comments_lookup_key(repo, pull_request_number)
+        $moneta.fetch(key) do
+          Comment.new(raw_comment).tap { |c| $moneta[key] = c }
+        end
+      end
+    end
+
+    def self.issue_comments_lookup_key(repo, id)
+      '%s:comment:%s' % [ repo.cache_key, id ]
+    end
+
     def number
       @number ||= raw.number
     end
@@ -27,16 +52,7 @@ module GithubActivity
     end
 
     def issue_comments
-      @issue_comments ||= begin
-        $github_api_client.issue_comments(repo.full_name, number).map do |raw_comment|
-          comment_key = '%s:comment:%s' % [ repo.cache_key, raw_comment.id ]
-          $moneta.fetch(comment_key) do
-            Comment.new(raw_comment).tap do |comment|
-              $moneta[comment_key] = comment
-            end
-          end
-        end
-      end
+      @issue_comments ||= self.class.find_comments(repo, number)
     end
 
     def jira_ticket_numbers

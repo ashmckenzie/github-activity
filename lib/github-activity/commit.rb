@@ -1,11 +1,37 @@
 module GithubActivity
   class Commit
 
+    PER_PAGE = 100
+
     attr_reader :repo
 
     def initialize(repo, raw)
       @repo = repo
       @raw  = raw
+    end
+
+    def self.find(repo, sha)
+      key = lookup_key(repo, sha)
+      $moneta.fetch(key) do
+        raw_commit = $github_api_client.commit(repo.full_name, sha)
+        new(repo, raw_commit).tap { |c| $moneta[key] = c }
+      end
+    end
+
+    def self.find_between(repo, date_from, date_to)
+      request = Request.new
+      query = proc { $github_api_client.commits_between(repo.full_name, date_from, date_to, per_page: PER_PAGE) }
+
+      request.get(query).map do |raw_commit|
+        key = lookup_key(repo, raw_commit.sha)
+        $moneta.fetch(key) do
+          new(repo, raw_commit).tap { |c| $moneta[key] = c }
+        end
+      end
+    end
+
+    def self.lookup_key(repo, sha)
+      '%s:commit:%s' % [ repo.cache_key, sha ]
     end
 
     def sha
@@ -31,8 +57,7 @@ module GithubActivity
     def pull_request
       @pull_request ||= begin
         if pull_request_number
-          raw_pull_request = $github_api_client.pull_request(repo.full_name, pull_request_number)
-          PullRequest.new(repo, raw_pull_request)
+          PullRequest.find(repo, pull_request_number)
         else
           NullPullRequest.new
         end
@@ -41,7 +66,7 @@ module GithubActivity
 
     def jira_tickets
       @jira_tickets ||= begin
-        (jira_ticket_numbers_from_commit + jira_ticket_numbers_from_pull_request).uniq.map do |ticket_number|
+        (jira_ticket_numbers + jira_ticket_numbers_from_pull_request).uniq.map do |ticket_number|
           JiraTicket.new(ticket_number)
         end
       end
@@ -50,13 +75,7 @@ module GithubActivity
     def parent_commits
       @parent_commits ||= begin
         raw.parents.map do |parent_commit|
-          commit_key = '%s:commit:%s' % [ repo.cache_key, parent_commit.sha ]
-          $moneta.fetch(commit_key) do |sha|
-            raw_commit = $github_api_client.commit(repo.full_name, parent_commit.sha)
-            Commit.new(repo, raw_commit).tap do |commit|
-              $moneta[commit_key] = commit
-            end
-          end
+          self.class.find(repo, parent_commit.sha)
         end
       end
     end
@@ -77,15 +96,16 @@ module GithubActivity
         commit_pull_request_number || parent_commit_pull_request_number
       end
 
+      # FIXME: this is lame
       def parent_commit_pull_request_number
         @parent_commit_pull_request_number ||= begin
-          commit = parent_commits.detect { |c| !c.commit_pull_request_number.nil? }
-          commit ? commit.commit_pull_request_number : nil
+          parent_commit = parent_commits.detect { |c| !c.commit_pull_request_number.nil? }
+          parent_commit ? parent_commit.pull_request.number : nil
         end
       end
 
-      def jira_ticket_numbers_from_commit
-        @jira_ticket_numbers_from_commit ||= JiraTicket.extract_jira_ticket_numbers_from(message)
+      def jira_ticket_numbers
+        @jira_ticket_numbers ||= JiraTicket.extract_jira_ticket_numbers_from(message)
       end
 
       def jira_ticket_numbers_from_pull_request
