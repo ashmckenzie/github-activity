@@ -85,16 +85,16 @@ formatters = [ GithubActivity::Formatters::CSV.new(CSV_OUTPUT_FILE) ]
 formatters.each(&:begin!)
 
 org.repos(REPO_LOOKUP_KLASS, REPO_LOOKUP_FILTER).each do |repo|
+    print "#{repo.full_name}: " if VERBOSE
+
   repo.commits(DATE_FROM, DATE_TO).each do |commit|
     formatters.each do |formatter|
         formatter.render(repo, commit)
       print('.') if VERBOSE
     end
   end
-  print('+') if VERBOSE
-end
-
 puts if VERBOSE
+  end
 
 formatters.each(&:finish!)
 
