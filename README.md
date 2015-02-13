@@ -14,8 +14,16 @@ GitHub activity is a small Ruby application that allows one to list all commits 
 
 ## Running
 
+### Search for repositories using a regex:
+
 ```bash
-$ GITHUB_API_TOKEN='<token>' ./activity.rb --org <org> --date-from <YYYY-MM-DD> --date-to <YYYY-MM-DD>
+$ GITHUB_API_TOKEN='<token>' ./activity.rb --org <org> --date-from <YYYY-MM-DD> --date-to <YYYY-MM-DD> --filter '^repo\d+'
+```
+
+### Parse specific repositories:
+
+```bash
+$ GITHUB_API_TOKEN='<token>' ./activity.rb --org <org> --date-from <YYYY-MM-DD> --date-to <YYYY-MM-DD> --repos 'repo1,repo2'
 ```
 
 ## Output
