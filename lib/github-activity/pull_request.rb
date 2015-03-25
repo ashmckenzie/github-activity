@@ -66,8 +66,9 @@ module GithubActivity
 
     def jira_ticket_numbers
       @jira_ticket_numbers ||= begin
-        inputs = [ url, title, description, branch ] + comments.map(&:body)
-        inputs.map { |input| JiraTicket.extract_jira_ticket_numbers_from(input) }.flatten.uniq
+        numbers = jira_ticket_numbers_in_detail
+        numbers +=  jira_ticket_numbers_in_comments if numbers.empty?
+        numbers
       end
     end
 
@@ -86,6 +87,17 @@ module GithubActivity
 
       attr_reader :raw, :repo
 
+      def jira_ticket_numbers_in_detail
+        extract_jira_tickets([ url, title, description, branch ])
+      end
+
+      def jira_ticket_numbers_in_comments
+        extract_jira_tickets(comments.map(&:body))
+      end
+
+      def extract_jira_tickets(inputs)
+        inputs.map { |input| JiraTicket.extract_jira_ticket_numbers_from(input) }.flatten.uniq
+      end
   end
 
   NullPullRequest = Naught.build do |config|

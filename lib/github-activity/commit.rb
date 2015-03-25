@@ -98,15 +98,11 @@ module GithubActivity
       end
 
       def all_jira_ticket_numbers
-        (jira_ticket_numbers + jira_ticket_numbers_from_pull_request)
+        (jira_ticket_numbers + pull_request.jira_ticket_numbers)
       end
 
       def jira_ticket_numbers
         @jira_ticket_numbers ||= JiraTicket.extract_jira_ticket_numbers_from(message)
-      end
-
-      def jira_ticket_numbers_from_pull_request
-        @jira_ticket_numbers_from_pull_request ||= pull_request.jira_ticket_numbers
       end
 
   end
