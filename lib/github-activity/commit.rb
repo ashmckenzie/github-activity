@@ -20,11 +20,8 @@ module GithubActivity
     def self.find_between(repo, date_from, date_to)
       request = Request.new
       query = proc { $github_api_client.commits_between(repo.full_name, date_from, date_to, per_page: PER_PAGE) }
-
       request.get(query).map do |raw_commit|
-        $moneta.fetch(lookup_key(repo, raw_commit.sha)) do |key|
-          new(repo, raw_commit).tap { |c| $moneta[key] = c }
-        end
+        $moneta.fetch(lookup_key(repo, raw_commit.sha)) { |key| new(repo, raw_commit).tap { |c| $moneta[key] = c } }
       end
     end
 
@@ -55,8 +52,8 @@ module GithubActivity
     def pull_request
       @pull_request ||= begin
         if pull_request_number
-          PullRequest.find(repo, pull_request_number).tap do |pull_request|
-            create_pull_request_commit_links!(pull_request)
+          PullRequest.find(repo, pull_request_number).tap do |pr|
+            pr.cache_commits!(parent_commits)
           end
         else
           NullPullRequest.new
@@ -65,40 +62,23 @@ module GithubActivity
     end
 
     def jira_tickets
-      @jira_tickets ||= begin
-        (jira_ticket_numbers || jira_ticket_numbers_from_pull_request).uniq.map do |ticket_number|
-          JiraTicket.new(ticket_number)
-        end
-      end
+      @jira_tickets ||= all_jira_ticket_numbers.uniq.map { |ticket_number| JiraTicket.new(ticket_number) }
     end
 
-    def parent_commits
-      @parent_commits ||= begin
-        raw.parents.map do |parent_commit|
-          self.class.find(repo, parent_commit.sha)
-        end
-      end
+    def to_s
+      '%s %s %s' % [ timestamp, sha, message ]
     end
 
-    def commit_pull_request_number
-      @commit_pull_request_number ||= message.match(pull_request_regex) { |match| match[:number] }
+    def pull_request_commit_link_key
+      '%s:pull-request-commit-links:%s' % [ repo.cache_key, sha ]
     end
 
     private
 
       attr_reader :raw
 
-      def create_pull_request_commit_links!(pull_request)
-        pull_request.commits.each do |commit|
-          $moneta.fetch(pull_request_commit_link_key(commit)) do |key|
-            $moneta[key] = pull_request.number
-          end
-        end
-      end
-
-      # FIXME: lame
-      def pull_request_commit_link_key(commit)
-        '%s:pull-request-commit-links:%s' % [ repo.cache_key, commit.sha ]
+      def parent_commits
+        @parent_commits ||= raw.parents.map { |parent_commit| self.class.find(repo, parent_commit.sha) }
       end
 
       def pull_request_regex
@@ -109,8 +89,16 @@ module GithubActivity
         commit_pull_request_number || linked_pull_request_number
       end
 
+      def commit_pull_request_number
+        @commit_pull_request_number ||= message.match(pull_request_regex) { |match| match[:number] }
+      end
+
       def linked_pull_request_number
-        $moneta[pull_request_commit_link_key(self)]
+        $moneta[pull_request_commit_link_key]
+      end
+
+      def all_jira_ticket_numbers
+        (jira_ticket_numbers + jira_ticket_numbers_from_pull_request)
       end
 
       def jira_ticket_numbers

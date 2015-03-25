@@ -34,6 +34,12 @@ module GithubActivity
       '%s:comment:%s' % [ repo.cache_key, id ]
     end
 
+    def cache_commits!(parent_commits)
+      (parent_commits + commits).each do |commit|
+        $moneta.fetch(commit.pull_request_commit_link_key) { |key| $moneta[key] = number }
+      end
+    end
+
     def number
       @number ||= raw.number
     end
@@ -61,9 +67,7 @@ module GithubActivity
     def jira_ticket_numbers
       @jira_ticket_numbers ||= begin
         inputs = [ url, title, description, branch ] + comments.map(&:body)
-        inputs.map do |input|
-          JiraTicket.extract_jira_ticket_numbers_from(input)
-        end.flatten.uniq
+        inputs.map { |input| JiraTicket.extract_jira_ticket_numbers_from(input) }.flatten.uniq
       end
     end
 
