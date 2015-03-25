@@ -71,7 +71,9 @@ module GithubActivity
       @commits ||= begin
         $github_api_client.pull_request_commits(repo.full_name, number).map do |raw_commit|
           key = Commit.lookup_key(repo, raw_commit.sha)
-          $moneta.fetch(key) { Commit.new(repo, raw_commit).tap { |c| $moneta[key] = c } }
+          $moneta.fetch(key) do
+            Commit.new(repo, raw_commit).tap { |c| $moneta[key] = c }
+          end
         end
       end
     end

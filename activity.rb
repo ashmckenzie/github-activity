@@ -88,12 +88,13 @@ org.repos(REPO_LOOKUP_KLASS, REPO_LOOKUP_FILTER).each do |repo|
   print "#{repo.full_name}: " if VERBOSE
 
   repo.commits(DATE_FROM, DATE_TO).each do |commit|
+    puts commit if DEBUG
     formatters.each do |formatter|
-      formatter.render(repo, commit)
-      print('.') if VERBOSE
+      formatter.render(commit)
+      print('.') if !DEBUG && VERBOSE
     end
   end
-  puts if VERBOSE
+  puts if !DEBUG && VERBOSE
 end
 
 formatters.each(&:finish!)

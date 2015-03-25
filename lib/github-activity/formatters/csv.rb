@@ -12,18 +12,8 @@ module GithubActivity
         write_header
       end
 
-      def render(repo, commit)
-        line = [
-          repo.full_name,
-          commit.timestamp,
-          commit.author.name,
-          commit.author.email,
-          commit.message,
-          commit.github_url,
-          commit.pull_request.url,
-          commit.jira_tickets.map(&:url).join(' ')
-        ]
-        file.puts(line.join(','))
+      def render(commit)
+        file.puts(line_for_commit(commit).join(','))
       end
 
       def finish!
@@ -33,6 +23,19 @@ module GithubActivity
       private
 
         attr_reader :file
+
+        def line_for_commit(commit)
+          [
+            commit.repo.full_name,
+            commit.timestamp,
+            commit.author.name,
+            commit.author.email,
+            commit.message,
+            commit.github_url,
+            commit.pull_request.url,
+            commit.jira_tickets.map(&:url).join(' ')
+          ]
+        end
 
         def write_header
           file.puts(HEADERS.join(','))

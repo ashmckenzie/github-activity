@@ -14,8 +14,8 @@ module GithubActivity
     end
 
     def self.extract_jira_ticket_numbers_from(input)
-      return [] if input.nil?  # FIXME: Not sure why this is required?
-      input.scan(/(\w+-\d+)/).flatten.map { |x| x.strip.upcase }.uniq
+      return [] if input.nil?
+      input.scan(/\b([a-zA-Z]+-\d+)\b/).flatten.map { |x| x.strip.upcase }.uniq
     end
 
   end
